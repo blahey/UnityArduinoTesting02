@@ -15,18 +15,16 @@ void setup() {
   pinMode(RED_LED_PIN, OUTPUT);
 
   Serial.begin(115200);
-  Serial.println("Unity Serial Controller Initialized");
 }
 
 void readSensors() {
   int potValue = analogRead(POT_PIN);
   bool buttonState = digitalRead(BUTTON_PIN) == LOW; // Active low button
 
-  // Send data over serial
-  Serial.print("Potentiometer: ");
+  // Send one newline-terminated CSV message: potValue,button(0|1)
   Serial.print(potValue);
-  Serial.print(", Button: ");
-  Serial.println(buttonState ? "Pressed" : "Released");
+  Serial.print(',');
+  Serial.println(buttonState ? 1 : 0);
 
   // Update LEDs based on button state
   digitalWrite(GREEN_LED_PIN, buttonState ? HIGH : LOW);
@@ -34,8 +32,8 @@ void readSensors() {
 } 
 
 void loop() {
-         if (sendTimer >= SEND_INTERVAL_MS) {
-             sendTimer = 0; // Reset the timer
-             readSensors(); // Read and send sensor data    
+  if (sendTimer >= SEND_INTERVAL_MS) {
+    sendTimer = 0; // Reset the timer
+    readSensors(); // Read and send sensor data
   }
 }
