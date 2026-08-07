@@ -74,4 +74,13 @@ public class ArduinoDataInputOutput : MonoBehaviour
             }
         }
     }
+    void OnApplicationQuit()
+    {
+        // Close the serial port when the application quits
+        if (stream != null && stream.IsOpen)
+        {
+            stream.Close();
+            Debug.Log("Serial port closed.");
+        }
+    }
 }
