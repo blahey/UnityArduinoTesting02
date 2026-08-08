@@ -1,11 +1,14 @@
 # UnityArduinoTesting02 provides a simple example of Arduino-Unity communication, facilitating the use of sensors and acuators for an extended range of game engine interactive experiences. 
 
 ## This version demonstrates:
-Serial data communication from the Arduio to Unity
+- Serial data communication from the Arduio to Unity
+- Data includes:
+  -  One analog sensor value
+  - One digital sensor state
+- Implements the use of potentiometer data to rotate a targeted object in Unity
+- Unity scene includes several objects to produce a flashlight experience
 
-Data includes:
--  One analog sensor value
-- One digital sensor state
+
 
 ## Hardware requirements:
 - Arduino compatible microcontroller
@@ -38,6 +41,10 @@ Data includes:
     - Observe "Arduino Data Varaibles" in the DataIO inspector view.
       - These values should update when you interact with your sensors.
       - Note: Unity must be the active (selected) window for the display to update.
+  - Select FlashlightControl object in Heirarchy
+    - Assign an object to control by dragging it to the Target Object field. (Experiment with different objects!)
+    - Read the code and comments in the FlashlightController script to understand how it works. 
+    - Try changing variables in FlashlightControl. 
 - Hit Stop (in Unity)
 
 
