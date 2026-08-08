@@ -11,6 +11,8 @@ public class FlashlightController : MonoBehaviour
     [Header("Target")]
     // The object this script controls. Useful when this script is on an empty GameObject.
     public Transform targetObject;
+    // Light to toggle with button input. If left empty, one will be searched on the target hierarchy.
+    public Light targetLight;
 
     [Header("Potentiometer Input Range")]
     // Raw sensor range expected from Arduino (analogRead is usually 0-1023).
@@ -36,6 +38,10 @@ public class FlashlightController : MonoBehaviour
     private Vector3 baseEulerAngles;
     // Used to detect if a different target was assigned at runtime.
     private Transform cachedTarget;
+    // Tracks button transitions so one press toggles once.
+    private bool previousButtonPressed;
+    // Prevents repeating the same missing-assignment error every frame.
+    private bool missingLightErrorShown;
 
     // Called when the component is first added or reset in the Inspector.
     void Reset()
@@ -50,6 +56,14 @@ public class FlashlightController : MonoBehaviour
         EnsureTarget();
         CacheBaseRotation();
         currentZAngle = GetTargetZAngle();
+
+        if (targetLight == null)
+        {
+            Debug.LogError("FlashlightController requires targetLight to be assigned in the Inspector.", this);
+            missingLightErrorShown = true;
+        }
+
+        previousButtonPressed = dataIO != null && dataIO.buttonPressed;
     }
 
     // Update runs once per frame.
@@ -75,6 +89,16 @@ public class FlashlightController : MonoBehaviour
             CacheBaseRotation();
             currentZAngle = GetTargetZAngle();
         }
+
+        // Toggle the light only on the button's rising edge (not every frame while held).
+        bool currentButtonPressed = dataIO.buttonPressed;
+
+        if (currentButtonPressed && !previousButtonPressed)
+        {
+            ToggleLight();
+        }
+
+        previousButtonPressed = currentButtonPressed;
 
         // Convert sensor value into a normalized 0..1 value.
         float t = Mathf.InverseLerp(minPotValue, maxPotValue, dataIO.potValue);
@@ -149,6 +173,20 @@ public class FlashlightController : MonoBehaviour
         else
         {
             targetObject.eulerAngles = euler;
+        }
+    }
+
+    // Switches the light between on/off states.
+    void ToggleLight()
+    {
+        if (targetLight != null)
+        {
+            targetLight.enabled = !targetLight.enabled;
+        }
+        else if (!missingLightErrorShown)
+        {
+            Debug.LogError("FlashlightController requires targetLight to be assigned in the Inspector.", this);
+            missingLightErrorShown = true;
         }
     }
 }

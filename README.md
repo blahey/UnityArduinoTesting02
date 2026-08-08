@@ -1,51 +1,63 @@
-# UnityArduinoTesting02 provides a simple example of Arduino-Unity communication, facilitating the use of sensors and acuators for an extended range of game engine interactive experiences. 
+# UnityArduinoTesting02 provides a simple example of Arduino-Unity communication, facilitating the use of sensors and actuators for game engine interactive experiences.
 
 ## This version demonstrates:
-- Serial data communication from the Arduio to Unity
+- Serial data communication from Arduino to Unity
 - Data includes:
-  -  One analog sensor value
-  - One digital sensor state
-- Implements the use of potentiometer data to rotate a targeted object in Unity
+  - One analog sensor value (potentiometer)
+  - One digital sensor state (button)
+- `FlashlightController` maps potentiometer input to an absolute Z rotation on a selected target object
+- Button input toggles a selected Light on and off
 - Unity scene includes several objects to produce a flashlight experience
-
-
 
 ## Hardware requirements:
 - Arduino compatible microcontroller
-- This example was testing on an Ellegoo Arduino Mega
-- Analog sensor on pin A0 (tested with potentiometer)    
+- This example was tested on an Elegoo Arduino Mega
+- Analog sensor on pin A0 (tested with potentiometer)
 - Digital sensor on pin 2 (tested with momentary SPST switch on breadboard)
 
-## Libray Requirements
-- elapsedMillis by Paul Stoffregen (tested with version 1.0.6 )    
+## Library requirements:
+- `elapsedMillis` by Paul Stoffregen (tested with version 1.0.6)
 
-## Unity Requirements:
+## Unity requirements:
 - Unity 6000.0.64f1 or later
 - Edit > Project Settings > Player > Configuration
-  - Set Api Compatibiity Level to ".NET Framework"
+  - Set API Compatibility Level to `.NET Framework`
+
+## Serial data format:
+- Firmware sends newline-terminated CSV:
+  - `potValue,buttonState`
+  - Example: `512,1`
 
 ## Testing process:
 ### Arduino
 - Assemble Arduino circuit
-- Upload sketdh to Arduino
+- Upload sketch to Arduino
 - Test output with Arduino Serial Monitor
-- Close Serial Monitor (this is essential for Unity to see the connection)  
+- Close Serial Monitor (this is essential for Unity to open the same serial connection)
+
 ### Unity
-- Open Unity Project
-- Set Api Compatibility (see Unity Requirements)      
+- Open Unity project
+- Set API Compatibility (see Unity requirements)
 - Select the DataIO object in the Hierarchy
-  - Set your Port Name in the Inspector window (view your port in the Arduino IDE)
-  - Hit Play (in Unity)
-  - Look at Console in Unity
-    - "Serial port opened successfully." should appear when you hit play.
-    - Observe "Arduino Data Varaibles" in the DataIO inspector view.
-      - These values should update when you interact with your sensors.
-      - Note: Unity must be the active (selected) window for the display to update.
-  - Select FlashlightControl object in Heirarchy
-    - Assign an object to control by dragging it to the Target Object field. (Experiment with different objects!)
-    - Read the code and comments in the FlashlightController script to understand how it works. 
-    - Try changing variables in FlashlightControl. 
-- Hit Stop (in Unity)
+  - Set your `Port Name` in the Inspector (find it in the Arduino IDE)
+- Select the FlashlightControl object in the Hierarchy (or your controller object)
+  - Ensure the `FlashlightController` script is attached
+  - Assign `Data IO`
+  - Assign `Target Object` (the object that should rotate)
+  - Assign `Target Light` (the Light component to toggle)
+  - Note: `Target Light` must be assigned manually. The script intentionally reports an error if it is missing.
+- Hit Play in Unity
+  - Look at the Console
+    - `Serial port opened successfully.` should appear when Play starts
+    - If `Target Light` is missing, `FlashlightController` reports an assignment error
+  - Observe `Arduino Data Variables` in the DataIO Inspector
+    - Values should update as you move the potentiometer and press the button
+    - Unity must be the active window for values to visibly update in the Inspector
+  - Interact with controls
+    - Potentiometer changes the target object's Z rotation (absolute angle mapping)
+    - Button press toggles the target light on/off
+- Hit Stop in Unity
+  -  `Serial port closed` should appear when game is stopped.
 
 
 
