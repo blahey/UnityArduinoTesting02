@@ -6,6 +6,7 @@
   - One analog sensor value (potentiometer)
   - One digital sensor state (button)
 - `FlashlightController` maps potentiometer input to an absolute Z rotation on a selected target object
+- `BasicFirstPersonController` enables keyboard walking and jumping from the first-person flashlight perspective
 - Button input toggles a selected Light on and off
 - Unity sends flashlight state back to Arduino so the green LED mirrors the Unity Light state
 - Unity sends collision state back to Arduino so the red LED indicates Unity collision events
@@ -46,6 +47,21 @@
   - Setup: Add `AnyCollisionLedController` to a manager object, then assign `Data IO`, `Monitored Collider`, and `Valid Layers`.
 - Tip: Keep only one red LED controller active at a time to avoid conflicting commands.
 
+## First-person movement option:
+- Script: `BasicFirstPersonController`
+- Use when: You want the cylinder flashlight rig to act as a simple player avatar.
+- How it works:
+  - Attach the script to the cylinder object.
+  - Assign the child Main Camera transform as `View Transform`.
+  - Uses keyboard movement (`Horizontal` and `Vertical`) and jump (`Jump`, default Space).
+  - Movement direction follows camera facing on the horizontal plane.
+- Required components on the cylinder:
+  - `Rigidbody`
+  - `CapsuleCollider`
+- Recommended Rigidbody setup for this lesson:
+  - `Use Gravity`: enabled
+  - Rotation constraints: freeze X, Y, Z rotation (the script also enforces stable rotation behavior)
+
 ## About the LED example:
 - The green LED is intentionally the simplest possible actuator output example.
 - In the same pattern, Unity interactions, game logic, or data streams can control any actuator your microcontroller can drive, such as motors, relays, servos, buzzers, pumps, valves, LEDs, or addressable light strips.
@@ -69,6 +85,10 @@
   - Assign `Target Object` (the object that should rotate)
   - Assign `Target Light` (the Light component to toggle)
   - Note: `Target Light` must be assigned manually. The script intentionally reports an error if it is missing.
+- Select the cylinder player object in the Hierarchy
+  - Ensure `BasicFirstPersonController` is attached
+  - Assign the child Main Camera to `View Transform`
+  - Confirm the cylinder has `Rigidbody` and `CapsuleCollider`
 - Hit Play in Unity
   - Look at the Console
     - `Serial port opened successfully.` should appear when Play starts
@@ -77,6 +97,8 @@
     - Values should update as you move the potentiometer and press the button
     - Unity must be the active window for values to visibly update in the Inspector
   - Interact with controls
+    - `WASD` (or arrow keys) to walk
+    - `Space` to jump
     - Potentiometer changes the target object's Z rotation (absolute angle mapping)
     - Button press toggles the target light on/off
     - Arduino green LED should mirror the Unity `Target Light` state
@@ -90,15 +112,18 @@
 ## Lesson checkpoint
 - Checkpoint 1: Serial input is live
   - In Play mode, confirm `Arduino Data Variables` update when you move the potentiometer and press/release the button.
-- Checkpoint 2: Potentiometer controls rotation
+- Checkpoint 2: First-person movement works
+  - Use keyboard controls to walk from the first-person camera perspective.
+  - Press `Space` and verify jumping only occurs when grounded.
+- Checkpoint 3: Potentiometer controls rotation
   - Move the potentiometer slowly and verify the assigned `Target Object` rotates about Z through the expected angle range.
-- Checkpoint 3: Button toggles light state
+- Checkpoint 4: Button toggles light state
   - Press and release the button once to toggle `Target Light` on.
   - Press and release again to toggle `Target Light` off.
-- Checkpoint 4: Unity output controls microcontroller actuator
+- Checkpoint 5: Unity output controls microcontroller actuator
   - At Play start, verify Arduino green LED matches the initial `Target Light` state.
   - After each button toggle in Unity, verify the green LED updates to the same on/off state.
-- Checkpoint 5: Collision logic controls red LED
+- Checkpoint 6: Collision logic controls red LED
   - `CollisionLedController` path: move either assigned target into collision with the other and verify red LED turns on; separate them and verify red LED turns off.
   - `AnyCollisionLedController` path: move the monitored collider into any valid target layer object and verify red LED turns on; separate them and verify red LED turns off.
 
