@@ -101,6 +101,36 @@ public class ArduinoDataInputOutput : MonoBehaviour
         }
     }
 
+    // Sends a red LED pulse command to Arduino: REDPULSE,durationMs
+    public void SendRedLedPulse(int durationMs)
+    {
+        if (stream == null || !stream.IsOpen)
+        {
+            return;
+        }
+
+        int clampedDurationMs = Mathf.Max(1, durationMs);
+        string message = "REDPULSE," + clampedDurationMs;
+
+        try
+        {
+            stream.WriteLine(message);
+
+            if (logOutgoingMessages)
+            {
+                Debug.Log("Unity -> Arduino: " + message);
+            }
+        }
+        catch (TimeoutException)
+        {
+            Debug.LogWarning("Timed out writing to serial port.");
+        }
+        catch (Exception e)
+        {
+            Debug.LogError("Error writing to serial port: " + e.Message);
+        }
+    }
+
     // Update is called once per frame
     void Update()
     {

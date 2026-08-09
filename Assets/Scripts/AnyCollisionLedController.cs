@@ -14,6 +14,9 @@ public class AnyCollisionLedController : MonoBehaviour
     public LayerMask validLayers = ~0;
     public QueryTriggerInteraction triggerInteraction = QueryTriggerInteraction.Ignore;
 
+    [Header("Output Pulse")]
+    public int redLedPulseDurationMs = 250;
+
     private bool previousCollisionState;
     private bool missingTargetErrorShown;
 
@@ -24,23 +27,20 @@ public class AnyCollisionLedController : MonoBehaviour
 
     void Start()
     {
-        bool isColliding = CheckCollisionWithAnyValidObject();
-        previousCollisionState = isColliding;
-        SendCollisionState(isColliding);
-
-        // Same startup reliability pattern used in this project.
-        Invoke(nameof(ResendInitialCollisionState), 0.75f);
+        previousCollisionState = CheckCollisionWithAnyValidObject();
     }
 
     void Update()
     {
         bool isColliding = CheckCollisionWithAnyValidObject();
 
-        if (isColliding != previousCollisionState)
+        // Entry-only behavior: send pulse when collision first begins.
+        if (isColliding && !previousCollisionState)
         {
-            previousCollisionState = isColliding;
-            SendCollisionState(isColliding);
+            SendCollisionPulse();
         }
+
+        previousCollisionState = isColliding;
     }
 
     bool CheckCollisionWithAnyValidObject()
@@ -86,16 +86,12 @@ public class AnyCollisionLedController : MonoBehaviour
         return false;
     }
 
-    void SendCollisionState(bool isColliding)
+    void SendCollisionPulse()
     {
         if (dataIO != null)
         {
-            dataIO.SendRedLedState(isColliding);
+            int duration = Mathf.Max(1, redLedPulseDurationMs);
+            dataIO.SendRedLedPulse(duration);
         }
-    }
-
-    void ResendInitialCollisionState()
-    {
-        SendCollisionState(previousCollisionState);
     }
 }

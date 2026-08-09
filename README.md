@@ -33,19 +33,26 @@
   - Example: `512,1`
 - Unity sends newline-terminated command messages:
   - `FLASHLIGHT,0` or `FLASHLIGHT,1`
-  - `REDLED,0` or `REDLED,1`
+  - `REDPULSE,durationMs` (preferred for collision/haptic events)
+  - `REDLED,1` (legacy compatibility path, triggers default pulse)
   - Example: `FLASHLIGHT,1`
 
 ## Interaction options for red LED control:
 - Option 1: `CollisionLedController` (two specific objects)
   - Use when: You want collision detection only between one assigned object pair.
-  - How it works: You assign `First Target` and `Second Target`. Red LED turns on only when those two overlap/collide.
+  - How it works: You assign `First Target` and `Second Target`. A collision event from that pair triggers a short red output pulse.
   - Setup: Add `CollisionLedController` to a manager object, then assign `Data IO`, `First Target`, and `Second Target`.
 - Option 2: `AnyCollisionLedController` (one object vs any valid object)
   - Use when: You want one assigned object to trigger red LED when it contacts any allowed scene object.
-  - How it works: You assign `Monitored Collider` and choose `Valid Layers`. Red LED turns on when monitored object overlaps any collider in those layers.
+  - How it works: You assign `Monitored Collider` and choose `Valid Layers`. It responds only at the entry point of a collision (rising edge) and sends a pulse command.
   - Setup: Add `AnyCollisionLedController` to a manager object, then assign `Data IO`, `Monitored Collider`, and `Valid Layers`.
+  - Haptic tuning: Adjust `Red Led Pulse Duration Ms` in the Inspector (default `250`) to control pulse length.
 - Tip: Keep only one red LED controller active at a time to avoid conflicting commands.
+
+## Haptic pulse tuning notes:
+- Firmware default pulse length is `250 ms` (`DEFAULT_RED_PULSE_MS`) for legacy collision commands.
+- `AnyCollisionLedController` can override pulse length per collision event through `REDPULSE,durationMs`.
+- For solenoids or other tactile hardware, start with short pulses (100-300 ms) and increase gradually while observing heat and current limits.
 
 ## First-person movement option:
 - Script: `BasicFirstPersonController`
@@ -104,8 +111,9 @@
     - Arduino green LED should mirror the Unity `Target Light` state
       - The startup state is sent immediately and then resent once shortly after Play starts to improve reliability during serial startup
     - Red LED controller options:
-      - If using `CollisionLedController`, red LED turns on only for collisions between `First Target` and `Second Target`
-      - If using `AnyCollisionLedController`, red LED turns on when `Monitored Collider` overlaps any object in `Valid Layers`
+      - If using `CollisionLedController`, collisions between `First Target` and `Second Target` trigger short red pulses
+      - If using `AnyCollisionLedController`, red output pulses when `Monitored Collider` first collides with any object in `Valid Layers`
+      - Pulse duration defaults to 250 ms and is designed for haptic-style output (for example, solenoids)
 - Hit Stop in Unity
   -  `Serial port closed` should appear when game is stopped.
 
@@ -124,8 +132,9 @@
   - At Play start, verify Arduino green LED matches the initial `Target Light` state.
   - After each button toggle in Unity, verify the green LED updates to the same on/off state.
 - Checkpoint 6: Collision logic controls red LED
-  - `CollisionLedController` path: move either assigned target into collision with the other and verify red LED turns on; separate them and verify red LED turns off.
-  - `AnyCollisionLedController` path: move the monitored collider into any valid target layer object and verify red LED turns on; separate them and verify red LED turns off.
+  - `CollisionLedController` path: move either assigned target into collision with the other and verify a brief red pulse at collision start.
+  - `AnyCollisionLedController` path: move the monitored collider into any valid target layer object and verify a brief red pulse only on collision entry.
+  - Repeat with a different pulse duration value and verify tactile timing changes as expected.
 
 
 

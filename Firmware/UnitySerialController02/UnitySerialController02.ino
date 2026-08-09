@@ -5,23 +5,44 @@ const int BUTTON_PIN = 2;
 const int GREEN_LED_PIN = 7;
 const int RED_LED_PIN = 8;
 const unsigned long SEND_INTERVAL_MS = 50;
+const unsigned long DEFAULT_RED_PULSE_MS = 250;
 
 elapsedMillis sendTimer;
 bool flashlightState = false;
-bool redLedState = false;
+unsigned long redLedPulseEndTimeMs = 0;
 
 const int SERIAL_BUFFER_SIZE = 32;
 char serialBuffer[SERIAL_BUFFER_SIZE];
 int serialBufferIndex = 0;
 
+void triggerRedLedPulse(unsigned long durationMs) {
+  unsigned long safeDuration = durationMs > 0 ? durationMs : 1;
+  redLedPulseEndTimeMs = millis() + safeDuration;
+}
+
+bool isRedPulseActive() {
+  return (long)(millis() - redLedPulseEndTimeMs) < 0;
+}
+
 void handleIncomingCommand(const char* command) {
   int stateValue = 0;
+  unsigned long pulseDurationMs = 0;
 
   if (sscanf(command, "FLASHLIGHT,%d", &stateValue) == 1) {
     flashlightState = stateValue != 0;
+  } else if (sscanf(command, "REDPULSE,%lu", &pulseDurationMs) == 1) {
+    triggerRedLedPulse(pulseDurationMs);
   } else if (sscanf(command, "REDLED,%d", &stateValue) == 1) {
-    redLedState = stateValue != 0;
+    // Backward compatibility: REDLED,1 triggers a default pulse.
+    if (stateValue != 0) {
+      triggerRedLedPulse(DEFAULT_RED_PULSE_MS);
+    }
   }
+}
+
+void updateActuators() {
+  digitalWrite(GREEN_LED_PIN, flashlightState ? HIGH : LOW);
+  digitalWrite(RED_LED_PIN, isRedPulseActive() ? HIGH : LOW);
 }
 
 void processIncomingSerial() {
@@ -66,16 +87,11 @@ void readSensors() {
   Serial.print(potValue);
   Serial.print(',');
   Serial.println(buttonState ? 1 : 0);
-
-  // Green LED mirrors Unity flashlight state.
-  digitalWrite(GREEN_LED_PIN, flashlightState ? HIGH : LOW);
-
-  // Red LED reflects Unity collision state.
-  digitalWrite(RED_LED_PIN, redLedState ? HIGH : LOW);
 } 
 
 void loop() {
   processIncomingSerial();
+  updateActuators();
 
   if (sendTimer >= SEND_INTERVAL_MS) {
     sendTimer = 0; // Reset the timer
