@@ -20,6 +20,9 @@ public class ArduinoDataInputOutput : MonoBehaviour
     public int potValue;
     public bool buttonPressed;
 
+    [Header("Arduino Data Output")]
+    public bool logOutgoingMessages;
+
     
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -37,6 +40,35 @@ public class ArduinoDataInputOutput : MonoBehaviour
         catch (Exception e)
         {
             Debug.LogError("Failed to open serial port: " + e.Message);
+        }
+    }
+
+    // Sends flashlight state to Arduino as newline-terminated CSV: FLASHLIGHT,0|1
+    public void SendFlashlightState(bool isOn)
+    {
+        if (stream == null || !stream.IsOpen)
+        {
+            return;
+        }
+
+        string message = "FLASHLIGHT," + (isOn ? "1" : "0");
+
+        try
+        {
+            stream.WriteLine(message);
+
+            if (logOutgoingMessages)
+            {
+                Debug.Log("Unity -> Arduino: " + message);
+            }
+        }
+        catch (TimeoutException)
+        {
+            Debug.LogWarning("Timed out writing to serial port.");
+        }
+        catch (Exception e)
+        {
+            Debug.LogError("Error writing to serial port: " + e.Message);
         }
     }
 

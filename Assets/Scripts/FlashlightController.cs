@@ -11,7 +11,7 @@ public class FlashlightController : MonoBehaviour
     [Header("Target")]
     // The object this script controls. Useful when this script is on an empty GameObject.
     public Transform targetObject;
-    // Light to toggle with button input. If left empty, one will be searched on the target hierarchy.
+    // Light to toggle with button input. Must be assigned in the Inspector.
     public Light targetLight;
 
     [Header("Potentiometer Input Range")]
@@ -61,6 +61,13 @@ public class FlashlightController : MonoBehaviour
         {
             Debug.LogError("FlashlightController requires targetLight to be assigned in the Inspector.", this);
             missingLightErrorShown = true;
+        }
+        else
+        {
+            // Send startup state now, then resend once after a short delay.
+            // The delayed send helps when Arduino briefly resets after serial opens.
+            SendFlashlightStateToArduino();
+            Invoke(nameof(SendInitialFlashlightStateDelayed), 0.75f);
         }
 
         previousButtonPressed = dataIO != null && dataIO.buttonPressed;
@@ -182,11 +189,31 @@ public class FlashlightController : MonoBehaviour
         if (targetLight != null)
         {
             targetLight.enabled = !targetLight.enabled;
+            SendFlashlightStateToArduino();
         }
         else if (!missingLightErrorShown)
         {
             Debug.LogError("FlashlightController requires targetLight to be assigned in the Inspector.", this);
             missingLightErrorShown = true;
         }
+    }
+
+    void SendFlashlightStateToArduino()
+    {
+        if (dataIO != null && targetLight != null)
+        {
+            dataIO.SendFlashlightState(targetLight.enabled);
+        }
+    }
+
+    // Sends one delayed startup sync to improve reliability after serial startup.
+    void SendInitialFlashlightStateDelayed()
+    {
+        if (dataIO == null || targetLight == null)
+        {
+            return;
+        }
+
+        SendFlashlightStateToArduino();
     }
 }

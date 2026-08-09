@@ -7,6 +7,8 @@
   - One digital sensor state (button)
 - `FlashlightController` maps potentiometer input to an absolute Z rotation on a selected target object
 - Button input toggles a selected Light on and off
+- Unity sends flashlight state back to Arduino so the green LED mirrors the Unity Light state
+- Demonstrates bidirectional communication: sensor input into Unity, then Unity logic/data driving microcontroller outputs
 - Unity scene includes several objects to produce a flashlight experience
 
 ## Hardware requirements:
@@ -27,6 +29,14 @@
 - Firmware sends newline-terminated CSV:
   - `potValue,buttonState`
   - Example: `512,1`
+- Unity sends newline-terminated command messages:
+  - `FLASHLIGHT,0` or `FLASHLIGHT,1`
+  - Example: `FLASHLIGHT,1`
+
+## About the LED example:
+- The green LED is intentionally the simplest possible actuator output example.
+- In the same pattern, Unity interactions, game logic, or data streams can control any actuator your microcontroller can drive, such as motors, relays, servos, buzzers, pumps, valves, LEDs, or addressable light strips.
+- For this lesson, the LED keeps the hardware setup and debugging process simple while showing the full loop from Unity decision to physical output.
 
 ## Testing process:
 ### Arduino
@@ -56,6 +66,8 @@
   - Interact with controls
     - Potentiometer changes the target object's Z rotation (absolute angle mapping)
     - Button press toggles the target light on/off
+    - Arduino green LED should mirror the Unity `Target Light` state
+      - The startup state is sent immediately and then resent once shortly after Play starts to improve reliability during serial startup
 - Hit Stop in Unity
   -  `Serial port closed` should appear when game is stopped.
 
@@ -67,6 +79,9 @@
 - Checkpoint 3: Button toggles light state
   - Press and release the button once to toggle `Target Light` on.
   - Press and release again to toggle `Target Light` off.
+- Checkpoint 4: Unity output controls microcontroller actuator
+  - At Play start, verify Arduino green LED matches the initial `Target Light` state.
+  - After each button toggle in Unity, verify the green LED updates to the same on/off state.
 
 
 

@@ -7,6 +7,44 @@ const int RED_LED_PIN = 8;
 const unsigned long SEND_INTERVAL_MS = 50;
 
 elapsedMillis sendTimer;
+bool flashlightState = false;
+
+const int SERIAL_BUFFER_SIZE = 32;
+char serialBuffer[SERIAL_BUFFER_SIZE];
+int serialBufferIndex = 0;
+
+void handleIncomingCommand(const char* command) {
+  int stateValue = 0;
+
+  if (sscanf(command, "FLASHLIGHT,%d", &stateValue) == 1) {
+    flashlightState = stateValue != 0;
+  }
+}
+
+void processIncomingSerial() {
+  while (Serial.available() > 0) {
+    char incomingChar = Serial.read();
+
+    if (incomingChar == '\r') {
+      continue;
+    }
+
+    if (incomingChar == '\n') {
+      serialBuffer[serialBufferIndex] = '\0';
+
+      if (serialBufferIndex > 0) {
+        handleIncomingCommand(serialBuffer);
+      }
+
+      serialBufferIndex = 0;
+    } else if (serialBufferIndex < SERIAL_BUFFER_SIZE - 1) {
+      serialBuffer[serialBufferIndex++] = incomingChar;
+    } else {
+      // If a line is too long, reset and wait for the next command.
+      serialBufferIndex = 0;
+    }
+  }
+}
 
 void setup() {
   pinMode(POT_PIN, INPUT);
@@ -26,12 +64,16 @@ void readSensors() {
   Serial.print(',');
   Serial.println(buttonState ? 1 : 0);
 
-  // Update LEDs based on button state
-  digitalWrite(GREEN_LED_PIN, buttonState ? HIGH : LOW);
+  // Green LED mirrors Unity flashlight state.
+  digitalWrite(GREEN_LED_PIN, flashlightState ? HIGH : LOW);
+
+  // Red LED still reflects the physical button state.
   digitalWrite(RED_LED_PIN, buttonState ? LOW : HIGH);
 } 
 
 void loop() {
+  processIncomingSerial();
+
   if (sendTimer >= SEND_INTERVAL_MS) {
     sendTimer = 0; // Reset the timer
     readSensors(); // Read and send sensor data
