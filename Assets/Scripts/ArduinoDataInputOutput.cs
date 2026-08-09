@@ -72,6 +72,35 @@ public class ArduinoDataInputOutput : MonoBehaviour
         }
     }
 
+    // Sends red LED state to Arduino as newline-terminated CSV: REDLED,0|1
+    public void SendRedLedState(bool isOn)
+    {
+        if (stream == null || !stream.IsOpen)
+        {
+            return;
+        }
+
+        string message = "REDLED," + (isOn ? "1" : "0");
+
+        try
+        {
+            stream.WriteLine(message);
+
+            if (logOutgoingMessages)
+            {
+                Debug.Log("Unity -> Arduino: " + message);
+            }
+        }
+        catch (TimeoutException)
+        {
+            Debug.LogWarning("Timed out writing to serial port.");
+        }
+        catch (Exception e)
+        {
+            Debug.LogError("Error writing to serial port: " + e.Message);
+        }
+    }
+
     // Update is called once per frame
     void Update()
     {

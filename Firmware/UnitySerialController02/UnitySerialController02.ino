@@ -8,6 +8,7 @@ const unsigned long SEND_INTERVAL_MS = 50;
 
 elapsedMillis sendTimer;
 bool flashlightState = false;
+bool redLedState = false;
 
 const int SERIAL_BUFFER_SIZE = 32;
 char serialBuffer[SERIAL_BUFFER_SIZE];
@@ -18,6 +19,8 @@ void handleIncomingCommand(const char* command) {
 
   if (sscanf(command, "FLASHLIGHT,%d", &stateValue) == 1) {
     flashlightState = stateValue != 0;
+  } else if (sscanf(command, "REDLED,%d", &stateValue) == 1) {
+    redLedState = stateValue != 0;
   }
 }
 
@@ -67,8 +70,8 @@ void readSensors() {
   // Green LED mirrors Unity flashlight state.
   digitalWrite(GREEN_LED_PIN, flashlightState ? HIGH : LOW);
 
-  // Red LED still reflects the physical button state.
-  digitalWrite(RED_LED_PIN, buttonState ? LOW : HIGH);
+  // Red LED reflects Unity collision state.
+  digitalWrite(RED_LED_PIN, redLedState ? HIGH : LOW);
 } 
 
 void loop() {
