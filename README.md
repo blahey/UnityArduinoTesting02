@@ -8,6 +8,7 @@
 - `FlashlightController` maps potentiometer input to an absolute Z rotation on a selected target object
 - Button input toggles a selected Light on and off
 - Unity sends flashlight state back to Arduino so the green LED mirrors the Unity Light state
+- Unity sends collision state back to Arduino so the red LED indicates Unity collision events
 - Demonstrates bidirectional communication: sensor input into Unity, then Unity logic/data driving microcontroller outputs
 - Unity scene includes several objects to produce a flashlight experience
 
@@ -31,7 +32,19 @@
   - Example: `512,1`
 - Unity sends newline-terminated command messages:
   - `FLASHLIGHT,0` or `FLASHLIGHT,1`
+  - `REDLED,0` or `REDLED,1`
   - Example: `FLASHLIGHT,1`
+
+## Interaction options for red LED control:
+- Option 1: `CollisionLedController` (two specific objects)
+  - Use when: You want collision detection only between one assigned object pair.
+  - How it works: You assign `First Target` and `Second Target`. Red LED turns on only when those two overlap/collide.
+  - Setup: Add `CollisionLedController` to a manager object, then assign `Data IO`, `First Target`, and `Second Target`.
+- Option 2: `AnyCollisionLedController` (one object vs any valid object)
+  - Use when: You want one assigned object to trigger red LED when it contacts any allowed scene object.
+  - How it works: You assign `Monitored Collider` and choose `Valid Layers`. Red LED turns on when monitored object overlaps any collider in those layers.
+  - Setup: Add `AnyCollisionLedController` to a manager object, then assign `Data IO`, `Monitored Collider`, and `Valid Layers`.
+- Tip: Keep only one red LED controller active at a time to avoid conflicting commands.
 
 ## About the LED example:
 - The green LED is intentionally the simplest possible actuator output example.
@@ -68,6 +81,9 @@
     - Button press toggles the target light on/off
     - Arduino green LED should mirror the Unity `Target Light` state
       - The startup state is sent immediately and then resent once shortly after Play starts to improve reliability during serial startup
+    - Red LED controller options:
+      - If using `CollisionLedController`, red LED turns on only for collisions between `First Target` and `Second Target`
+      - If using `AnyCollisionLedController`, red LED turns on when `Monitored Collider` overlaps any object in `Valid Layers`
 - Hit Stop in Unity
   -  `Serial port closed` should appear when game is stopped.
 
@@ -82,6 +98,9 @@
 - Checkpoint 4: Unity output controls microcontroller actuator
   - At Play start, verify Arduino green LED matches the initial `Target Light` state.
   - After each button toggle in Unity, verify the green LED updates to the same on/off state.
+- Checkpoint 5: Collision logic controls red LED
+  - `CollisionLedController` path: move either assigned target into collision with the other and verify red LED turns on; separate them and verify red LED turns off.
+  - `AnyCollisionLedController` path: move the monitored collider into any valid target layer object and verify red LED turns on; separate them and verify red LED turns off.
 
 
 
