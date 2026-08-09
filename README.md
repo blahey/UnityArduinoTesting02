@@ -59,6 +59,15 @@
 - Hit Stop in Unity
   -  `Serial port closed` should appear when game is stopped.
 
+## Lesson checkpoint
+- Checkpoint 1: Serial input is live
+  - In Play mode, confirm `Arduino Data Variables` update when you move the potentiometer and press/release the button.
+- Checkpoint 2: Potentiometer controls rotation
+  - Move the potentiometer slowly and verify the assigned `Target Object` rotates about Z through the expected angle range.
+- Checkpoint 3: Button toggles light state
+  - Press and release the button once to toggle `Target Light` on.
+  - Press and release again to toggle `Target Light` off.
+
 
 
 
