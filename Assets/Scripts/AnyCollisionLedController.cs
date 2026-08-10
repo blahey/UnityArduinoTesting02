@@ -7,6 +7,12 @@ public class AnyCollisionLedController : MonoBehaviour
     [Header("Data Source")]
     public ArduinoDataInputOutput dataIO;
 
+    [Header("Collision Audio")]
+    public AudioSource audioSource;
+    public AudioClip collisionSfx;
+    [Range(0f, 1f)]
+    public float collisionSfxVolume = 1f;
+
     [Header("Collision Target")]
     public Collider monitoredCollider;
 
@@ -23,6 +29,7 @@ public class AnyCollisionLedController : MonoBehaviour
     void Reset()
     {
         dataIO = FindFirstObjectByType<ArduinoDataInputOutput>();
+        audioSource = GetComponent<AudioSource>();
     }
 
     void Start()
@@ -38,6 +45,7 @@ public class AnyCollisionLedController : MonoBehaviour
         if (isColliding && !previousCollisionState)
         {
             SendCollisionPulse();
+            PlayCollisionSound();
         }
 
         previousCollisionState = isColliding;
@@ -93,5 +101,21 @@ public class AnyCollisionLedController : MonoBehaviour
             int duration = Mathf.Max(1, redLedPulseDurationMs);
             dataIO.SendRedLedPulse(duration);
         }
+    }
+
+    void PlayCollisionSound()
+    {
+        if (collisionSfx == null)
+        {
+            return;
+        }
+
+        if (audioSource != null)
+        {
+            audioSource.PlayOneShot(collisionSfx, collisionSfxVolume);
+            return;
+        }
+
+        AudioSource.PlayClipAtPoint(collisionSfx, transform.position, collisionSfxVolume);
     }
 }
